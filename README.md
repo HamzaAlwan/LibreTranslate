@@ -1,5 +1,14 @@
 # LibreTranslate
 
+How I solved the issue with `pycld2`:
+I installed the package form [Github](https://github.com/aboSamoor/pycld2/zipball/e3ac86ed4d4902e912691c1531d0c5645382a726)
+Using this answer on Stackoverflow(https://stackoverflow.com/questions/63697322/deprecated-wheel-error-when-installing-package-in-python)
+
+Then I updated the package by replacing `-m64` with `-march=armv8-a`,
+Using this answer on Stackoverflow(https://stackoverflow.com/questions/58244095/gcc-7-error-unrecognized-command-line-option-m64)
+
+You need to unzip `pycld2.zip` before running Docker
+
 [Try it online!](https://libretranslate.com) | [API Docs](https://libretranslate.com/docs) | [Community Forum](https://community.libretranslate.com/)
 
 [![Python versions](https://img.shields.io/pypi/pyversions/libretranslate)](https://pypi.org/project/libretranslate) [![Run tests](https://github.com/LibreTranslate/LibreTranslate/workflows/Run%20tests/badge.svg)](https://github.com/LibreTranslate/LibreTranslate/actions?query=workflow%3A%22Run+tests%22) [![Build and Publish Docker Image](https://github.com/LibreTranslate/LibreTranslate/actions/workflows/publish-docker.yml/badge.svg)](https://github.com/LibreTranslate/LibreTranslate/actions/workflows/publish-docker.yml) [![Publish package](https://github.com/LibreTranslate/LibreTranslate/actions/workflows/publish-package.yml/badge.svg)](https://github.com/LibreTranslate/LibreTranslate/actions/workflows/publish-package.yml) [![Awesome Humane Tech](https://raw.githubusercontent.com/humanetech-community/awesome-humane-tech/main/humane-tech-badge.svg?sanitize=true)](https://github.com/humanetech-community/awesome-humane-tech)
@@ -108,7 +117,7 @@ pip install libretranslate
 libretranslate [args]
 ```
 
-Then open a web browser to http://localhost:5000
+Then open a web browser to http://localhost:5005
 
 If you're on Windows, we recommend you [Run with Docker](#run-with-docker) instead.
 
@@ -130,17 +139,17 @@ libretranslate [args]
 python main.py [args]
 ```
 
-Then open a web browser to http://localhost:5000
+Then open a web browser to http://localhost:5005
 
 ### Run with Docker
 
 Simply run:
 
 ```bash
-docker run -ti --rm -p 5000:5000 libretranslate/libretranslate
+docker run -ti --rm -p 5005:5005 libretranslate/libretranslate
 ```
 
-Then open a web browser to http://localhost:5000
+Then open a web browser to http://localhost:5005
 
 ### Build with Docker
 
@@ -153,7 +162,7 @@ If you want to run the Docker image in a complete offline environment, you need 
 Run the built image:
 
 ```bash
-docker run -it -p 5000:5000 libretranslate [args]
+docker run -it -p 5005:5005 libretranslate [args]
 ```
 
 Or build and run using `docker-compose`:
@@ -181,7 +190,7 @@ docker-compose -f docker-compose.cuda.yml up -d --build
 | Argument                    | Description                                                                                                 | Default              | Env. name                    |
 |-----------------------------|-------------------------------------------------------------------------------------------------------------| -------------------- |------------------------------|
 | --host                      | Set host to bind the server to                                                                              | `127.0.0.1`          | LT_HOST                      |
-| --port                      | Set port to bind the server to                                                                              | `5000`               | LT_PORT                      |
+| --port                      | Set port to bind the server to                                                                              | `5005`               | LT_PORT                      |
 | --char-limit                | Set character limit                                                                                         | `No limit`               | LT_CHAR_LIMIT                |
 | --req-limit                 | Set maximum number of requests per minute per client                                                        | `No limit`               | LT_REQ_LIMIT                 |
 | --req-limit-storage         | Storage URI to use for request limit data storage. See [Flask Limiter](https://flask-limiter.readthedocs.io/en/stable/configuration.html) | `memory://` | LT_REQ_LIMIT_STORAGE |
@@ -209,14 +218,14 @@ Note that each argument has an equivalent environment variable that can be used 
 
 ```
 pip install gunicorn
-gunicorn --bind 0.0.0.0:5000 'wsgi:app'
+gunicorn --bind 0.0.0.0:5005 'wsgi:app'
 ```
 
 You can pass application arguments directly to Gunicorn via:
 
 
 ```
-gunicorn --bind 0.0.0.0:5000 'wsgi:app(api_keys=True)'
+gunicorn --bind 0.0.0.0:5005 'wsgi:app(api_keys=True)'
 ```
 
 ## Run with Kubernetes
@@ -345,9 +354,9 @@ In short, no. [You need to buy an API key](https://buy.stripe.com/3cs4j3a4u4c8d3
 
 Yes, here are config examples for Apache2 and Caddy that redirect a subdomain (with HTTPS certificate) to LibreTranslate running on a docker at localhost. 
 ```
-sudo docker run -ti --rm -p 127.0.0.1:5000:5000 libretranslate/libretranslate
+sudo docker run -ti --rm -p 127.0.0.1:5005:5005 libretranslate/libretranslate
 ```
-You can remove `127.0.0.1` on the above command if you want to be able to access it from `domain.tld:5000`, in addition to `subdomain.domain.tld` (this can be helpful to determine if there is an issue with Apache2 or the docker container). 
+You can remove `127.0.0.1` on the above command if you want to be able to access it from `domain.tld:5005`, in addition to `subdomain.domain.tld` (this can be helpful to determine if there is an issue with Apache2 or the docker container). 
 
 Add `--restart unless-stopped` if you want this docker to start on boot, unless manually stopped.
 
@@ -374,8 +383,8 @@ Remove `#` on the ErrorLog and CustomLog lines to log requests.
 <VirtualHost *:443>
     ServerName https://[YOUR_DOMAIN]
     
-    ProxyPass / http://127.0.0.1:5000/
-    ProxyPassReverse / http://127.0.0.1:5000/
+    ProxyPass / http://127.0.0.1:5005/
+    ProxyPassReverse / http://127.0.0.1:5005/
     ProxyPreserveHost On
    
     SSLEngine on
@@ -402,7 +411,7 @@ Replace [YOUR_DOMAIN] with your full domain; for example, `translate.domain.tld`
 ```Caddyfile
 #Libretranslate
 [YOUR_DOMAIN] {
-  reverse_proxy localhost:5000
+  reverse_proxy localhost:5005
 }
 ```
 
@@ -484,7 +493,7 @@ server {
   gzip_types text/xml text/javascript font/ttf font/eot font/otf application/x-javascript application/atom+xml application/javascript application/json application/manifest+json application/rss+xml application/x-web-app-manifest+json application/xhtml+xml application/xml image/svg+xml image/x-icon text/css text/plain;
 
   location / {
-      proxy_pass http://127.0.0.1:5000/;
+      proxy_pass http://127.0.0.1:5005/;
       proxy_set_header Host $http_host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

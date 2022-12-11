@@ -15,13 +15,13 @@ RUN python -mvenv venv && ./venv/bin/pip install --upgrade pip
 COPY . .
 
 # Install package from source code
-RUN ./venv/bin/pip install . \
+RUN ./venv/bin/pip install /app/pycld2 && ./venv/bin/pip install . \
   && ./venv/bin/pip cache purge
 
 
 FROM python:3.8.14-slim-bullseye
 
-ARG with_models=false
+ARG with_models=true
 ARG models=
 
 RUN addgroup --system --gid 1032 libretranslate && adduser --system --uid 1032 libretranslate
@@ -40,5 +40,5 @@ RUN if [ "$with_models" = "true" ]; then  \
   fi \
   fi
 
-EXPOSE 5000
+EXPOSE 5005
 ENTRYPOINT [ "./venv/bin/libretranslate", "--host", "0.0.0.0" ]
